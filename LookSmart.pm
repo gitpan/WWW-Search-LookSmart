@@ -2,7 +2,7 @@
 # LookSmart.pm
 # by Jim Smyser
 # Copyright (C) 1996-1999 by Jim Smyser & USC/ISI
-# $Id: LookSmart.pm,v 2.03 2000/05/02 22:20:03 jims Exp $
+# $Id: LookSmart.pm,v 2.05 2000/06/07 15:06:39 jims Exp $
 ##########################################################
 
 
@@ -79,7 +79,10 @@ WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 
 
-=head1 VERSION HISTORY
+=head1 CHANGES
+
+2.05
+Return New! titles with results
 
 2.01
 New test mechanism
@@ -95,7 +98,7 @@ require Exporter;
 @EXPORT = qw();
 @EXPORT_OK = qw();
 @ISA = qw(WWW::Search Exporter);
-$VERSION = '2.04';
+$VERSION = '2.05';
 
 $MAINTAINER = 'Jim Smyser <jsmyser@bigfoot.com>';
 $TEST_CASES = <<"ENDTESTCASES";
@@ -174,13 +177,16 @@ sub native_retrieve_some
      {
      next if m@^$@; # short circuit for blank lines
      print STDERR " $state ===$_=== " if 2 <= $self->{'_debug'};
-     if (m|(\d+)-(\d+)\s+matches|i) {
+     if (m|\d+-\d+\s+matches|i) {
      print STDERR "Total Pages Returned\n" if ($self->{_debug});
      $state = $HITS;
+
  } elsif (m|<b>.*?Web Sites from LookSmart Editors|i) {
      print STDERR "Total Pages Returned\n" if ($self->{_debug});
      $state = $HITS;
- } elsif ($state eq $HITS && m@<dl><dt><a href=(.*?)>(.*?)</a></dt>@i) {
+ } elsif ($state eq $HITS && 
+          m@<dl><dt><a href=(.*?)>(.*?)</a></dt>@i ||
+          m@<dl><dt><a href=(.*?)>(.*?New!.*?)</dt>$@i) {
      print STDERR "**Found Hit URL**\n" if 2 <= $self->{_debug};
      my ($url, $title) = ($1,$2);
      if ($url =~ m/^\/cgi/) 
@@ -221,6 +227,5 @@ sub native_retrieve_some
         return $hits_found;
      } # native_retrieve_some
 1;
-
 
 
